@@ -77,7 +77,6 @@ static const double kTimerInterval = 1.0;
         
         // 设置代理
         _scrollView.delegate = self;
-        _scrollView.userInteractionEnabled = YES;
     }
     return _scrollView;
 }
@@ -118,7 +117,13 @@ static const double kTimerInterval = 1.0;
 
 - (void)changePage
 {
-    
+    // 设置当前需要偏移的量
+    CGFloat curOffsetX = _scrollView.contentOffset.x + CGRectGetWidth(self.frame);
+    // 如果到最后面的多余页面，则设置为第一个，否则正常计算
+    if (curOffsetX >= self.frame.size.width * _pageCount)
+    {
+        
+    }
 }
 
 
@@ -128,7 +133,7 @@ static const double kTimerInterval = 1.0;
     // 当点击轮播图的时候
     if ([self.delegate respondsToSelector:@selector(carouseView:didSelectedAtIndex:)])
     {
-//        [self.delegate carouseView:self didSelectedAtIndex:_pageControl.currentPage];
+        [self.delegate carouseView:self didSelectedAtIndex:_pageControl.currentPage];
     }
 }
 
