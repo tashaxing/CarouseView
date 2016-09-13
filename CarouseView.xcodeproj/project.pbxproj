@@ -19,6 +19,7 @@
 		E40F32401D82B12E006D9B9A /* 3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E40F323B1D82B12E006D9B9A /* 3.jpg */; };
 		E40F32421D82B12E006D9B9A /* 5.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E40F323D1D82B12E006D9B9A /* 5.jpg */; };
 		E40F32441D82B278006D9B9A /* 4.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E40F32431D82B278006D9B9A /* 4.jpg */; };
+		E40F326E1D87D30D006D9B9A /* CarouseViewPlus.m in Sources */ = {isa = PBXBuildFile; fileRef = E40F326D1D87D30D006D9B9A /* CarouseViewPlus.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,8 @@
 		E40F323B1D82B12E006D9B9A /* 3.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 3.jpg; sourceTree = "<group>"; };
 		E40F323D1D82B12E006D9B9A /* 5.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 5.jpg; sourceTree = "<group>"; };
 		E40F32431D82B278006D9B9A /* 4.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = 4.jpg; sourceTree = "<group>"; };
+		E40F326C1D87D30D006D9B9A /* CarouseViewPlus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CarouseViewPlus.h; sourceTree = "<group>"; };
+		E40F326D1D87D30D006D9B9A /* CarouseViewPlus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CarouseViewPlus.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,13 +78,15 @@
 				E40F32231D826129006D9B9A /* AppDelegate.m */,
 				E40F32251D826129006D9B9A /* ViewController.h */,
 				E40F32261D826129006D9B9A /* ViewController.m */,
+				E40F32361D8261D7006D9B9A /* CarouseView.h */,
+				E40F32371D8261D7006D9B9A /* CarouseView.m */,
+				E40F326C1D87D30D006D9B9A /* CarouseViewPlus.h */,
+				E40F326D1D87D30D006D9B9A /* CarouseViewPlus.m */,
 				E40F32281D826129006D9B9A /* Main.storyboard */,
 				E40F322B1D826129006D9B9A /* Assets.xcassets */,
 				E40F322D1D826129006D9B9A /* LaunchScreen.storyboard */,
 				E40F32301D826129006D9B9A /* Info.plist */,
 				E40F321F1D826129006D9B9A /* Supporting Files */,
-				E40F32361D8261D7006D9B9A /* CarouseView.h */,
-				E40F32371D8261D7006D9B9A /* CarouseView.m */,
 			);
 			path = CarouseView;
 			sourceTree = "<group>";
@@ -130,7 +135,7 @@
 				TargetAttributes = {
 					E40F321B1D826129006D9B9A = {
 						CreatedOnToolsVersion = 7.3;
-						DevelopmentTeam = GV7V6SW596;
+						DevelopmentTeam = P3V7X37F97;
 					};
 				};
 			};
@@ -175,6 +180,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E40F326E1D87D30D006D9B9A /* CarouseViewPlus.m in Sources */,
 				E40F32271D826129006D9B9A /* ViewController.m in Sources */,
 				E40F32381D8261D7006D9B9A /* CarouseView.m in Sources */,
 				E40F32241D826129006D9B9A /* AppDelegate.m in Sources */,

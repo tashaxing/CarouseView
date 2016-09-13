@@ -12,6 +12,11 @@
 static const double kTimerInterval = 2.0;
 
 @interface CarouseView ()<UIScrollViewDelegate>
+{
+    //手动退拽时保存前的偏移量，便于判断方向
+    CGFloat preOffsetX;
+}
+
 
 @property (nonatomic, strong) UIScrollView *scrollView;    // 主滑动view
 @property (nonatomic, strong) UIPageControl *pageControl;  // 分页控件
@@ -28,21 +33,22 @@ static const double kTimerInterval = 2.0;
     {
         self.backgroundColor = [UIColor grayColor];
         // 启动定时器
-//        self.kvTimer = [NSTimer scheduledTimerWithTimeInterval:kTimerInterval target:self selector:@selector(changePage) userInfo:nil repeats:YES];
+        self.kvTimer = [NSTimer scheduledTimerWithTimeInterval:kTimerInterval target:self selector:@selector(changePageLeft) userInfo:nil repeats:YES];
     }
     return self;
 }
 
 - (void)layoutSubviews
 {
+    [super layoutSubviews];
+    
+
     // 添加滚动控件和分页控件
     [self addSubview:self.scrollView];
     [self addSubview:self.pageControl];
-    // 添加点击控件
-//    UIControl *control = [[UIControl alloc] initWithFrame:self.frame];
-//    [control addTarget:self action:@selector(pageCliked) forControlEvents:UIControlEventTouchUpInside];
-//    control.userInteractionEnabled = YES;
-//    [self addSubview:control];
+    // 设置初始页面
+    self.scrollView.contentOffset = CGPointMake(self.frame.size.width, 0);
+    self.pageControl.currentPage = 0;
 }
 
 #pragma mark - 懒加载控件
@@ -51,34 +57,54 @@ static const double kTimerInterval = 2.0;
 {
     if (!_scrollView)
     {
-        // 初始化大小
-        _scrollView = [[UIScrollView alloc] initWithFrame:self.frame];
-        // 设置滚动范围
-        _scrollView.contentSize = CGSizeMake(CGRectGetWidth(self.frame) * (_pageCount + 1), CGRectGetHeight(self.frame));
+        // 初始化尺寸
+        _scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
         // 设置分页效果
         _scrollView.pagingEnabled = YES;
         // 水平滚动条隐藏
         _scrollView.showsHorizontalScrollIndicator = NO;
-        // 添加子分页
-        // 设置页数
+        // 设置到边的弹性隐藏
+        _scrollView.bounces = NO;
+        // 设置分页数
         self.pageCount = [self.datasource countOfCellForCarouseView:self];
-        for (int i = 0; i < _pageCount; i++)
-        {
-            UIView *pageView = [self.datasource carouselView:self cellAtIndex:i];
-            // 设置tag方便索引
-            pageView.tag = 1000 + i;
-            // 设置偏移位置
-            pageView.frame = CGRectMake(self.frame.size.width * i, 0, self.frame.size.width, self.frame.size.height);
-            [_scrollView addSubview:pageView];
-        }
-        // 在最后一个页面后面加一个跟第一页一样的页面
-        UIView *lastPageView = [_scrollView viewWithTag:1000];
-        lastPageView.frame = CGRectMake(self.frame.size.width * _pageCount, 0, self.frame.size.width, self.frame.size.height);
-        lastPageView.tag = 1000 + _pageCount;
-        [_scrollView addSubview:lastPageView];
-        
+        // 设置滚动范围
+        _scrollView.contentSize = CGSizeMake(CGRectGetWidth(self.frame) * (_pageCount + 2), CGRectGetHeight(self.frame));
         // 设置代理
         _scrollView.delegate = self;
+        
+        // 添加分页，左右增加一页
+        for (int i = 0; i < _pageCount + 2; i++)
+        {
+            // 添加control,设置偏移位置
+            UIControl *control = [[UIControl alloc] initWithFrame:CGRectMake(self.frame.size.width * i, 0, self.frame.size.width, self.frame.size.height)];
+            
+            UIView *pageView = nil;
+            if (i == 0)
+            {
+                // 第一页多余页跟最后一页一样并重新定义
+                pageView = [self.datasource carouselView:self cellAtIndex:_pageCount - 1];
+            }
+            else if (i == _pageCount + 1)
+            {
+                // 最后多余的一页跟第一页一样并重新定义
+                pageView = [self.datasource carouselView:self cellAtIndex:0];
+            }
+            else
+            {
+                pageView = [self.datasource carouselView:self cellAtIndex:i - 1];
+            }
+            // 添加pageview
+            pageView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+            
+            // 将pageview挂在control上
+            [control addSubview:pageView];
+            
+            // 为每个页面添加响应层
+            [control addTarget:self action:@selector(pageCliked) forControlEvents:UIControlEventTouchUpInside];
+            
+            [_scrollView addSubview:control];
+            
+        }
     }
     return _scrollView;
 }
@@ -101,16 +127,34 @@ static const double kTimerInterval = 2.0;
         _pageControl.enabled = YES ;
         // 把导航条设置为半透明状态
         [_pageControl setBackgroundColor:[[UIColor blackColor] colorWithAlphaComponent:0.2]];
-        
-  
+        // 设置分页控制器的事件
+        [_pageControl addTarget:self action:@selector(pageControlTouched) forControlEvents:UIControlEventValueChanged];
     }
+
     return _pageControl;
+}
+
+#pragma mark - pagecontrol事件
+- (void)pageControlTouched
+{
+    // 点击的时候停止计时
+    [self.kvTimer setFireDate:[NSDate distantFuture]];
+    
+    // 滑到指定页面
+    NSInteger curPageIdx = _pageControl.currentPage;
+    CGFloat offsetX = self.frame.size.width * (curPageIdx + 1);
+    [self.scrollView setContentOffset:CGPointMake(offsetX, 0) animated:YES];
+
+    // 重新开启定时器
+    [self.kvTimer setFireDate:[NSDate dateWithTimeInterval:kTimerInterval sinceDate:[NSDate date]]];
 }
 
 #pragma mark - 滚动事件
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
     printf("start drag\n");
+    // 记录偏移量
+    preOffsetX = scrollView.contentOffset.x;
     // 开始手动滑动时暂停定时器
     [self.kvTimer setFireDate:[NSDate distantFuture]];
 }
@@ -118,6 +162,50 @@ static const double kTimerInterval = 2.0;
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
     printf("end drag\n");
+    // 左右边界
+    CGFloat leftEdgeOffsetX = 0;
+    CGFloat rightEdgeOffsetX = self.frame.size.width * (_pageCount + 1);
+    
+    if (scrollView.contentOffset.x < preOffsetX)
+    {
+        // 左滑
+        if (scrollView.contentOffset.x > leftEdgeOffsetX)
+        {
+            self.pageControl.currentPage = scrollView.contentOffset.x / self.frame.size.width - 1;
+        }
+        else if (scrollView.contentOffset.x == leftEdgeOffsetX)
+        {
+            self.pageControl.currentPage = _pageCount - 1;
+        }
+        
+        if (scrollView.contentOffset.x == leftEdgeOffsetX)
+        {
+            self.scrollView.contentOffset = CGPointMake(self.frame.size.width * _pageCount, 0);
+        }
+    }
+    else
+    {
+        // 右滑
+        
+        // 设置小点
+        if (scrollView.contentOffset.x < rightEdgeOffsetX)
+        {
+            self.pageControl.currentPage = scrollView.contentOffset.x / self.frame.size.width - 1;
+        }
+        else if (scrollView.contentOffset.x == rightEdgeOffsetX)
+        {
+            self.pageControl.currentPage = 0;
+        }
+        
+        // 滑动完了之后从最后多余页赶紧切换到第一页
+        if (scrollView.contentOffset.x == rightEdgeOffsetX)
+        {
+            self.scrollView.contentOffset = CGPointMake(self.frame.size.width, 0);
+        }
+
+    }
+    
+    
     // 结束后又开启定时器
     [self.kvTimer setFireDate:[NSDate dateWithTimeInterval:kTimerInterval sinceDate:[NSDate date]]];
 }
@@ -127,28 +215,66 @@ static const double kTimerInterval = 2.0;
     printf("end scroll\n");
 }
 
-- (void)changePage
+#pragma mark - 定时器控制的滑动
+// 往右边滑
+- (void)changePageRight
 {
-    // 设置当前需要偏移的量
+    // 设置当前需要偏移的量，每次递增一个page宽度
     CGFloat offsetX = _scrollView.contentOffset.x + CGRectGetWidth(self.frame);
     
     // 根据情况进行偏移
-    CGFloat edgeOffset = self.frame.size.width * _pageCount;  // 最后一个页面右边缘偏移量
-    // 带动画滑动
-    [self.scrollView setContentOffset:CGPointMake(offsetX, 0) animated:YES];
-    if (offsetX <= edgeOffset)
+    CGFloat edgeOffsetX = self.frame.size.width * (_pageCount + 1);  // 最后一个多余页面右边缘偏移量
+    
+    // 从多余页往右边滑，赶紧先设置为第一页的位置
+    if (offsetX > edgeOffsetX)
     {
-        self.pageControl.currentPage = offsetX / self.frame.size.width;
-    }
-    else
-    {
-        self.pageControl.currentPage = 0;
-        // 最后的多余那一页滑过去之后要立即设置偏移量为起点，并且不要动画，欺骗视觉
-        self.scrollView.contentOffset = CGPointZero;
+        // 偏移量，不带动画，欺骗视觉
+        self.scrollView.contentOffset = CGPointMake(self.frame.size.width, 0);
+        // 这里提前改变下一个要滑动到的位置为第二页
+        offsetX = self.frame.size.width * 2;
     }
     
+    // 带动画滑动到下一页面
+    [self.scrollView setContentOffset:CGPointMake(offsetX, 0) animated:YES];
+    if (offsetX < edgeOffsetX)
+    {
+        self.pageControl.currentPage = offsetX / self.frame.size.width - 1;
+    }
+    else if (offsetX == edgeOffsetX)
+    {
+        // 最后的多余那一页滑过去之后设置小点为第一个
+        self.pageControl.currentPage = 0;
+    }
 }
 
+// 往左边滑
+- (void)changePageLeft
+{
+    // 设置当前需要偏移的量，每次递减一个page宽度
+    CGFloat offsetX = _scrollView.contentOffset.x - CGRectGetWidth(self.frame);
+    
+    // 根据情况进行偏移
+    CGFloat edgeOffsetX = 0;  // 最后一个多余页面左边缘偏移量
+    
+    // 从多余页往左边滑动，先设置为最后一页
+    if (offsetX < edgeOffsetX)
+    {
+        self.scrollView.contentOffset = CGPointMake(self.frame.size.width * _pageCount, 0);
+        offsetX = self.frame.size.width * (_pageCount - 1);
+    }
+    
+    // 带动画滑动到前一页面
+    [self.scrollView setContentOffset:CGPointMake(offsetX, 0) animated:YES];
+    if (offsetX > edgeOffsetX)
+    {
+        self.pageControl.currentPage = offsetX / self.frame.size.width - 1;
+    }
+    else if (offsetX == edgeOffsetX)
+    {
+        // 最后的多余那一页滑过去之后设置小点为最后一个
+        self.pageControl.currentPage = _pageCount - 1;
+    }
+}
 
 #pragma mark - 触控事件
 - (void)pageCliked

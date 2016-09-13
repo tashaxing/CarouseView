@@ -36,6 +36,12 @@
     [self.view addSubview:carouseView];
 }
 
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
 #pragma mark - 轮播图代理
 - (NSInteger)countOfCellForCarouseView:(CarouseView *)carouseView
 {
@@ -44,18 +50,20 @@
 
 - (UIView *)carouselView:(CarouseView *)carouselView cellAtIndex:(NSInteger)index
 {
-    // 填充view，可以是任意view
-//    UIImage *image = [UIImage imageNamed:[NSString stringWithFormat:@"%ld.jpg", (long)index + 1]];
-//    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
-//    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(50, 50, 100, 50)];
-//    label.text = kvDataArray[index];
-//    [imageView addSubview:label];
-    UIView *imageView = [[UIView alloc] init];
-    int R = (arc4random() % 256) ;
-    int G = (arc4random() % 256) ;
-    int B = (arc4random() % 256) ;
+    // 先用空白页测试
+//    UIView *imageView = [[UIView alloc] init];
+//    int R = (arc4random() % 256) ;
+//    int G = (arc4random() % 256) ;
+//    int B = (arc4random() % 256) ;
+//    imageView.backgroundColor = [UIColor colorWithRed:R/255.0 green:G/255.0 blue:B/255.0 alpha:1];
     
-    imageView.backgroundColor = [UIColor colorWithRed:R/255.0 green:G/255.0 blue:B/255.0 alpha:1];
+    // 填充view，可以是任意view
+    UIImage *image = [UIImage imageNamed:[NSString stringWithFormat:@"%ld.jpg", (long)index + 1]];
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(50, 50, 100, 50)];
+    label.text = kvDataArray[index];
+    [imageView addSubview:label];
+    
     return imageView;
 }
 
@@ -69,10 +77,6 @@
     [alertView show];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+
 
 @end
