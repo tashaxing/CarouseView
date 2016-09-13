@@ -108,7 +108,7 @@
     // 设置三个页面
     for (int i = 0; i < 3; i++)
     {
-        UIView *page = (UIView *)pageViews[i];
+        UIView *page = pageViews[i];
         page.frame = CGRectMake(self.frame.size.width * i, 0, self.frame.size.width, self.frame.size.height);
         [_scrollView addSubview:page];
     }

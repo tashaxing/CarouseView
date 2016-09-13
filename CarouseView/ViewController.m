@@ -100,11 +100,11 @@
         int B = (arc4random() % 256) ;
         imageView.backgroundColor = [UIColor colorWithRed:R/255.0 green:G/255.0 blue:B/255.0 alpha:1];
         
-        imageView
+        [imageViews addObject:imageView];
     }
     
     
-    [carouseViewPlus setupSubviewPages:kvDataArray withCallbackBlock:^(NSInteger pageIndex) {
+    [carouseViewPlus setupSubviewPages:imageViews withCallbackBlock:^(NSInteger pageIndex) {
         // 点击页面
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"carouse2 msg"
                                                             message:kvDataArray[pageIndex]
@@ -113,7 +113,6 @@
                                                   otherButtonTitles:nil, nil];
         [alertView show];
     }];
-
 }
 
 
