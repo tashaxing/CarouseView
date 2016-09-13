@@ -152,7 +152,7 @@ static const double kTimerInterval = 2.0;
 #pragma mark - 滚动事件
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    printf("start drag\n");
+//    printf("start drag\n");
     // 记录偏移量
     preOffsetX = scrollView.contentOffset.x;
     // 开始手动滑动时暂停定时器
@@ -161,7 +161,7 @@ static const double kTimerInterval = 2.0;
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    printf("end drag\n");
+//    printf("end drag\n");
     // 左右边界
     CGFloat leftEdgeOffsetX = 0;
     CGFloat rightEdgeOffsetX = self.frame.size.width * (_pageCount + 1);
@@ -212,7 +212,7 @@ static const double kTimerInterval = 2.0;
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
-    printf("end scroll\n");
+//    printf("end scroll\n");
 }
 
 #pragma mark - 定时器控制的滑动

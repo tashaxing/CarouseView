@@ -14,7 +14,9 @@
     UIPageControl *_pageControl;
     NSInteger _pageCount;
     NSTimer *_kvTimer;
-    TapCarouseViewBlock _tapBlock;
+    TapCarouseViewBlock _tapBlock;  // 内部block
+    
+    NSArray *_kvImageArray; // 存放展示图片集合
 }
 
 @end
@@ -96,10 +98,12 @@
 #pragma mark - 外部设置分页
 - (void)setupSubviewPages:(NSArray *)pageViews withCallbackBlock:(TapCarouseViewBlock)block
 {
+    // 设置图片集合
+    _kvImageArray = pageViews;
     // 设置页数
     _pageCount = pageViews.count;
-    // 设置滚动范围
-    _scrollView.contentSize = CGSizeMake(CGRectGetWidth(self.frame) * _pageCount, CGRectGetHeight(self.frame));
+    // 设置滚动范围,只有三个页面
+    _scrollView.contentSize = CGSizeMake(CGRectGetWidth(self.frame) * 3, CGRectGetHeight(self.frame));
     // 设置分页控件
     _pageControl.numberOfPages = _pageCount;
     // 设置回调
@@ -108,10 +112,28 @@
     // 设置三个页面
     for (int i = 0; i < 3; i++)
     {
-        UIView *page = pageViews[i];
+        UIImageView *page = [[UIImageView alloc] init];
         page.frame = CGRectMake(self.frame.size.width * i, 0, self.frame.size.width, self.frame.size.height);
+        // 保存一下tag方便后面索引，其实也可以写成成员变量
+        page.tag = 1000 + i;
         [_scrollView addSubview:page];
     }
+    
+    // 设置初始展示图片
+    UIImageView *leftPage = [_scrollView viewWithTag:1000];
+    UIImageView *middlePage = [_scrollView viewWithTag:1001];
+    UIImageView *rightPage = [_scrollView viewWithTag:1002];
+    // 一开始要显示中间的第一张，所以左边放最后一张，右边放第二张
+    leftPage.image = _kvImageArray.lastObject;
+    middlePage.image = _kvImageArray.firstObject;
+    rightPage.image = _kvImageArray[1];
+    
+    // 设置初始偏移量和索引
+    _scrollView.contentOffset = CGPointMake(self.frame.size.width, 0);
+    _pageControl.currentPage = 0;
+    
+    // 开启定时器
+    [self startTimer];
 }
 
 #pragma mark - 定时器相关
@@ -133,6 +155,46 @@
 #pragma mark - 定时器回调
 - (void)changePageRight
 {
+    CGFloat offsetX = _scrollView.contentOffset.x + self.frame.size.width;
+    NSInteger curPageIndex = _pageControl.currentPage + 1; // 递增page
+    
+    if (offsetX > self.frame.size.width * 2)
+    {
+        // 要从右边开始滑，赶紧重新设置页面
+        UIImageView *leftPage = [_scrollView viewWithTag:1000];
+        UIImageView *middlePage = [_scrollView viewWithTag:1001];
+        UIImageView *rightPage = [_scrollView viewWithTag:1002];
+        
+        if (curPageIndex == _pageCount - 1)
+        {
+            leftPage.image = _kvImageArray[curPageIndex - 1];
+            middlePage.image = _kvImageArray.lastObject;
+            rightPage.image = _kvImageArray.firstObject;
+            
+        }
+        else if (curPageIndex == _pageCount)
+        {
+            // 到尾部了，改成从头开始
+            curPageIndex = 0;
+            
+            leftPage.image = _kvImageArray.lastObject;
+            middlePage.image = _kvImageArray.firstObject;
+            rightPage.image = _kvImageArray[1];
+        }
+        else
+        {
+            leftPage.image = _kvImageArray[curPageIndex - 1];
+            middlePage.image = _kvImageArray[curPageIndex];
+            rightPage.image = _kvImageArray[curPageIndex + 1];
+        }
+        
+        // 重新设置偏移量
+        _scrollView.contentOffset = CGPointMake(self.frame.size.width, 0);
+    }
+    
+    // 往右滑并且设置小圆点
+    [_scrollView setContentOffset:CGPointMake(offsetX, 0) animated:YES];
+    _pageControl.currentPage = curPageIndex;
     
 }
 
@@ -150,12 +212,12 @@
 #pragma mark - scrollview滑动代理
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    
+    [self stopTimer];
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    
+    [self startTimer];
 }
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView

@@ -90,21 +90,16 @@
 #pragma mark - 轮播图2设置
 - (void)setupCarouseViewPlus
 {
-    NSMutableArray *imageViews = [NSMutableArray array];
-    for (int i = 0; i < 3; i++)
+    // 图片数组，可以是其他的资源，设置到轮播图上就可以
+    NSMutableArray *imagerray = [NSMutableArray array];
+    for (int i = 0; i < kvDataArray.count; i++)
     {
         // 先用空白页测试
-        UIView *imageView = [[UIView alloc] init];
-        int R = (arc4random() % 256) ;
-        int G = (arc4random() % 256) ;
-        int B = (arc4random() % 256) ;
-        imageView.backgroundColor = [UIColor colorWithRed:R/255.0 green:G/255.0 blue:B/255.0 alpha:1];
-        
-        [imageViews addObject:imageView];
+        UIImage *image = [UIImage imageNamed:[NSString stringWithFormat:@"%d.jpg", i + 1]];
+        [imagerray addObject:image];
     }
     
-    
-    [carouseViewPlus setupSubviewPages:imageViews withCallbackBlock:^(NSInteger pageIndex) {
+    [carouseViewPlus setupSubviewPages:imagerray withCallbackBlock:^(NSInteger pageIndex) {
         // 点击页面
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"carouse2 msg"
                                                             message:kvDataArray[pageIndex]
