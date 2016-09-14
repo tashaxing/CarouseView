@@ -135,6 +135,7 @@ static const double kTimerInterval = 2.0;
 }
 
 #pragma mark - pagecontrol事件
+// 这个是点击小圆点条进行切换，到边不能循环
 - (void)pageControlTouched
 {
     // 点击的时候停止计时
@@ -204,8 +205,6 @@ static const double kTimerInterval = 2.0;
         }
 
     }
-    
-    
     // 结束后又开启定时器
     [self.kvTimer setFireDate:[NSDate dateWithTimeInterval:kTimerInterval sinceDate:[NSDate date]]];
 }

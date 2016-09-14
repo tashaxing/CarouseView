@@ -34,6 +34,10 @@
     kvDataArray = @[@"page 1", @"page 2", @"page3", @"page 4", @"page 5"];
     
     // 添加轮播图1
+    UILabel *label1 = [[UILabel alloc] initWithFrame:CGRectMake(0, 20, 150, 30)];
+    label1.text = @"两边加多余页方式";
+    [self.view addSubview:label1];
+    
     carouseView = [[CarouseView alloc] init];
     carouseView.frame = CGRectMake(0, 50, self.view.frame.size.width, 200);
     carouseView.datasource = self;
@@ -41,6 +45,10 @@
     [self.view addSubview:carouseView];
     
     // 添加轮播图2
+    UILabel *label2 = [[UILabel alloc] initWithFrame:CGRectMake(0, 270, 150, 30)];
+    label2.text = @"三张页面循环方式";
+    [self.view addSubview:label2];
+    
     carouseViewPlus = [[CarouseViewPlus alloc] initWithFrame:CGRectMake(0, 300, self.view.frame.size.width, 200)];
     [self setupCarouseViewPlus];
     [self.view addSubview:carouseViewPlus];

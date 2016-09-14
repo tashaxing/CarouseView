@@ -17,6 +17,8 @@
     TapCarouseViewBlock _tapBlock;  // 内部block
     
     NSArray *_kvImageArray; // 存放展示图片集合
+    
+    NSInteger _prePageIndex; // 记录之前的page下标，用于pagecontrol小圆点事件
 }
 
 @end
@@ -131,6 +133,7 @@
     // 设置初始偏移量和索引
     _scrollView.contentOffset = CGPointMake(self.frame.size.width, 0);
     _pageControl.currentPage = 0;
+    _prePageIndex = 0;
     
     // 开启定时器
     [self startTimer];
@@ -155,74 +158,135 @@
 #pragma mark - 定时器回调
 - (void)changePageRight
 {
-    CGFloat offsetX = _scrollView.contentOffset.x + self.frame.size.width;
-    NSInteger curPageIndex = _pageControl.currentPage + 1; // 递增page
-    
-    if (offsetX > self.frame.size.width * 2)
-    {
-        // 要从右边开始滑，赶紧重新设置页面
-        UIImageView *leftPage = [_scrollView viewWithTag:1000];
-        UIImageView *middlePage = [_scrollView viewWithTag:1001];
-        UIImageView *rightPage = [_scrollView viewWithTag:1002];
-        
-        if (curPageIndex == _pageCount - 1)
-        {
-            leftPage.image = _kvImageArray[curPageIndex - 1];
-            middlePage.image = _kvImageArray.lastObject;
-            rightPage.image = _kvImageArray.firstObject;
-            
-        }
-        else if (curPageIndex == _pageCount)
-        {
-            // 到尾部了，改成从头开始
-            curPageIndex = 0;
-            
-            leftPage.image = _kvImageArray.lastObject;
-            middlePage.image = _kvImageArray.firstObject;
-            rightPage.image = _kvImageArray[1];
-        }
-        else
-        {
-            leftPage.image = _kvImageArray[curPageIndex - 1];
-            middlePage.image = _kvImageArray[curPageIndex];
-            rightPage.image = _kvImageArray[curPageIndex + 1];
-        }
-        
-        // 重新设置偏移量
-        _scrollView.contentOffset = CGPointMake(self.frame.size.width, 0);
-    }
-    
-    // 往右滑并且设置小圆点
-    [_scrollView setContentOffset:CGPointMake(offsetX, 0) animated:YES];
-    _pageControl.currentPage = curPageIndex;
-    
+    // 往右滑并且设置小圆点，永远都是滑到第三页
+    [_scrollView setContentOffset:CGPointMake(self.frame.size.width * 2, 0) animated:YES];
+    [self resetPageIndex:YES];
 }
 
 - (void)changePageLeft
 {
+    // 往左滑，永远都是滑动到第一页
+    [_scrollView setContentOffset:CGPointMake(0, 0) animated:YES];
+    [self resetPageIndex:NO];
+}
+
+#pragma mark - 重新设置索引和页面图片
+- (void)resetPageIndex:(BOOL)isRight
+{
+    if (isRight)
+    {
+        // 根据之前的page下标来修改
+        if (_prePageIndex == _pageCount - 1)
+        {
+            // 到头了就回到第一个
+            _pageControl.currentPage = 0;
+        }
+        else
+        {
+            // 这里用_prePageIndex来算，否则点击小圆点条会重复计算了
+            _pageControl.currentPage = _prePageIndex + 1;
+        }
+    }
+    else
+    {
+        if (_prePageIndex == 0)
+        {
+            _pageControl.currentPage = _pageCount - 1;
+        }
+        else
+        {
+            _pageControl.currentPage = _prePageIndex - 1;
+        }
+    }
+    _prePageIndex = _pageControl.currentPage;
+}
+
+- (void)resetPageView
+{
+    // 每次滑动完了之后又重新设置当前显示的page时中间的page
+    UIImageView *leftPage = [_scrollView viewWithTag:1000];
+    UIImageView *middlePage = [_scrollView viewWithTag:1001];
+    UIImageView *rightPage = [_scrollView viewWithTag:1002];
     
+    if (_pageControl.currentPage == _pageCount - 1)
+    {
+        // n- 1 -> n -> 0
+        leftPage.image = _kvImageArray[_pageControl.currentPage - 1];
+        middlePage.image = _kvImageArray[_pageControl.currentPage];
+        rightPage.image = _kvImageArray.firstObject;
+        
+    }
+    else if (_pageControl.currentPage == 0)
+    {
+        // n -> 0 -> 1
+        // 到尾部了，改成从头开始
+        leftPage.image = _kvImageArray.lastObject;
+        middlePage.image = _kvImageArray.firstObject;
+        rightPage.image = _kvImageArray[1];
+    }
+    else
+    {
+        // x - 1 -> x -> x + 1
+        leftPage.image = _kvImageArray[_pageControl.currentPage - 1];
+        middlePage.image = _kvImageArray[_pageControl.currentPage];
+        rightPage.image = _kvImageArray[_pageControl.currentPage + 1];
+    }
+    
+    // 重新设置偏移量
+    _scrollView.contentOffset = CGPointMake(self.frame.size.width, 0);
 }
 
 #pragma mark - pagecontrol事件
 - (void)pageControlTouched
 {
+    [self stopTimer];
     
+    NSInteger curPageIndex = _pageControl.currentPage;
+    if (curPageIndex > _prePageIndex)
+    {
+        // 右滑
+        [self changePageRight];
+    }
+    else
+    {
+        // 左滑
+        [self changePageLeft];
+    }
+    
+    [self startTimer];
 }
 
 #pragma mark - scrollview滑动代理
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
+    // 先停掉定时器
     [self stopTimer];
+    
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
+    // 手动拖拽滑动结束后
+    if (scrollView.contentOffset.x > self.frame.size.width)
+    {
+        // 右滑
+        [self resetPageIndex:YES];
+    }
+    else
+    {
+        // 左滑
+        [self resetPageIndex:NO];
+    }
+    [self resetPageView];
+    
+    // 开启定时器
     [self startTimer];
 }
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
-    
+    // 自动滑动结束后重新设置图片
+    [self resetPageView];
 }
 
 @end
